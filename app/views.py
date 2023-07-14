@@ -6,6 +6,8 @@ from . models import Cart, Customer, Product
 from . forms import CustomerProfileForm, CustomerRegistrationForm
 from django.contrib import messages
 from django.db.models import Q
+from django.contrib .auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
 # Create your views here.
 def home (request):
@@ -13,6 +15,7 @@ def home (request):
     if request.user.is_authenticated:
         totalitem = len(Cart.objects.filter(user=request.user))
     return render(request, "app/home.html", locals())
+
 
 def about (request):
     totalitem = 0
@@ -26,6 +29,8 @@ def contact (request):
         totalitem = len(Cart.objects.filter(user=request.user))
     return render(request, "app/contact.html", locals())
 
+
+@method_decorator(login_required, name='dispatch')
 class CategoryView(View):
     def get(self, request, val):
         totalitem = 0
@@ -35,7 +40,7 @@ class CategoryView(View):
         title = Product.objects.filter(category=val).values('title') 
         return render(request, "app/category.html", locals())
 
-
+@method_decorator(login_required, name='dispatch')
 class CategoryTitle(View):
     def get(self, request, val):
         totalitem = 0
@@ -45,7 +50,7 @@ class CategoryTitle(View):
         title = Product.objects.filter(category=product[0].category).values ('title')
         return render(request, "app/category.html",locals())
 
-
+@method_decorator(login_required, name='dispatch')
 class ProductDetail(View):
     def get(self, request, pk):
         product = Product.objects.get(pk=pk)
@@ -71,6 +76,7 @@ class CustomerRegistrationView(View):
             messages.warning(request, "Registration Failed!")
         return render(request, "app/customerregistration.html", locals())
 
+@method_decorator(login_required, name='dispatch')
 class ProfileView(View):
     def get(self, request):
         form = CustomerProfileForm()
@@ -96,6 +102,7 @@ class ProfileView(View):
             messages.warning(request, "Invalid Input Data")
         return render (request, 'app/profile.html', locals())
 
+@login_required
 def address(request):
     add = Customer.objects.filter(user=request.user)
     totalitem = 0
@@ -103,7 +110,7 @@ def address(request):
         totalitem = len(Cart.objects.filter(user=request.user))
     return render(request, 'app/address.html', locals())
 
-
+@method_decorator(login_required, name='dispatch')
 class updateAddress(View):
     def get(self, request, pk):
         add=Customer.objects.get(pk=pk)
@@ -130,7 +137,7 @@ class updateAddress(View):
                 messages.warning(request, "Invalid Input Data")
             return redirect("address")
         
-
+@method_decorator(login_required, name='dispatch')
 class checkout (View):
     def get(self, request):
         totalitem = 0
@@ -146,7 +153,7 @@ class checkout (View):
         totalamount = famount + 40
         return render(request, 'app/checkout.html', locals())
 
-
+@login_required
 def add_to_cart(request):
     user=request.user
     product_id=request.GET.get('prod_id')
@@ -154,6 +161,7 @@ def add_to_cart(request):
     Cart(user=user, product=product).save()
     return redirect("/cart")
 
+@login_required
 def show_cart(request):
     user = request.user
     cart = Cart.objects.filter(user=user)
@@ -167,7 +175,7 @@ def show_cart(request):
         totalitem = len(Cart.objects.filter(user=request.user))
     return render(request, 'app/addtocart.html', locals())
 
-
+@login_required
 def plus_cart(request):
     if request.method == 'GET':
         prod_id=request.GET['prod_id']
@@ -188,7 +196,7 @@ def plus_cart(request):
         }
         return JsonResponse(data)
 
-
+@login_required
 def minus_cart(request):
     if request.method == 'GET':
         prod_id=request.GET['prod_id']
@@ -209,7 +217,7 @@ def minus_cart(request):
         }
         return JsonResponse(data)
 
-
+@login_required
 def remove_cart(request):
     if request.method == 'GET':
         prod_id=request.GET['prod_id']
@@ -229,7 +237,16 @@ def remove_cart(request):
         }
         return JsonResponse(data)
 
-
+@login_required
 #Payment Redirection
 def payment (request):
     return render(request, "app/payment.html")
+
+@login_required
+def search (request):
+    query = request.GET['search']
+    totalitem = 0
+    if request.user.is_authenticated:
+        totalitem = len(Cart.objects.filter(user = request.user))
+    product = Product.objects.filter(Q(title__icontains=query))
+    return render(request, "app/search.html", locals())

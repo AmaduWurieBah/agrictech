@@ -1,4 +1,5 @@
 from django.urls import path 
+from django.contrib import admin
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
@@ -25,6 +26,8 @@ urlpatterns = [
     path('minuscart/', views.minus_cart),
     path('removecart/', views.remove_cart),
 
+    path('search/', views.search, name ='search'),
+
     #Login Authentication
     path('registration/', views.CustomerRegistrationView.as_view(), name="customerregistration"),
     path('accounts/login/', auth_view.LoginView.as_view(template_name ='app/login.html', authentication_form=LoginForm), name = 'login'),
@@ -37,3 +40,8 @@ urlpatterns = [
     path('password-reset-complete/', auth_view.PasswordResetCompleteView.as_view(template_name='app/password_reset_complete.html'), name='password_reset_complete'),
 
 ]+static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
+
+
+admin.site.site_header = "AgricTech E- Farming"
+admin.site.site_title = "AgricTech E- Farming"
+admin.site.site_index_title = "Welome to AgricTech E- Farming"
